@@ -36,7 +36,12 @@ pipeline {
       steps {
         script {
           sh '''
-            curl -f http://localhost:8081 | grep -q "Hello world!"
+            # Récupérer l'IP du conteneur Docker
+            CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${IMAGE_NAME})
+            echo "Testing container at IP: $CONTAINER_IP"
+            
+            # Tester l'application
+            curl -f http://$CONTAINER_IP:5000 | grep -q "Hello world!"
           ''' 
         }
       }
@@ -47,8 +52,8 @@ pipeline {
       steps {
         script {
           sh '''
-            docker stop ${IMAGE_NAME}
-            docker rm ${IMAGE_NAME}
+            docker stop ${IMAGE_NAME} || true
+            docker rm ${IMAGE_NAME} || true
           ''' 
         }
       }
@@ -116,13 +121,9 @@ pipeline {
   
   post {
     always {
-      node('any') {
-        script {
-          sh '''
-            docker stop ${IMAGE_NAME} 2>/dev/null || true
-            docker rm ${IMAGE_NAME} 2>/dev/null || true
-          '''
-        }
+      script {
+        // Nettoyage effectué dans le stage dédié
+        echo 'Pipeline terminé'
       }
     }
     success {
