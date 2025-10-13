@@ -24,6 +24,11 @@ pipeline {
       steps {
         script {
           sh '''
+            # Nettoyer le conteneur s'il existe déjà
+            docker stop ${IMAGE_NAME} 2>/dev/null || true
+            docker rm ${IMAGE_NAME} 2>/dev/null || true
+            
+            # Lancer le nouveau conteneur
             docker run --name ${IMAGE_NAME} -d -p 8081:5000 -e PORT=5000 ${DOCKER_IMAGE}
             sleep 5
           ''' 
